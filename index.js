@@ -75,5 +75,5 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// Đăng nhập trực tiếp bằng Token được bọc trong dấu ngoặc kép
-client.login("MTU3MTg0NzM2ODcwMDkwODIy.GdnFsk.NHweBUv-4BIE7yMc03MkHiqKy10oXuJzIFOYlo");
+// Đăng nhập bằng Token mới chính xác
+client.login("MTU3MTg0NzQzNjg3MDA5MDgyMg.Ga14ND.igZJIR1YTJD6xSidVn3Jkmx96-QR0c0gQrRwKg");
