@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
     res.send('bot-gta5 is live!');
 });
 
-// Lắng nghe cổng trên Render
+// Lắng nghe cổng trên Render với 0.0.0.0 để tránh lỗi timeout port scan
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Web server đã khởi động trên cổng ${PORT}`);
@@ -75,6 +75,5 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// Đăng nhập Bot bằng Token
-// Thay vì dùng process.env.DISCORD_TOKEN
+// Đăng nhập trực tiếp bằng Token được bọc trong dấu ngoặc kép
 client.login("MTU3MTg0NzM2ODcwMDkwODIy.GdnFsk.NHweBUv-4BIE7yMc03MkHiqKy10oXuJzIFOYlo");
