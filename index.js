@@ -19,7 +19,7 @@ const client = new Client({
 let lichSuKetQua = [];
 const PREFIX = '!';
 // (Tùy chọn) Dán ID kênh Discord bắn log kết quả game vào trong dấu nháy đơn bên dưới
-const LOG_CHANNEL_ID = 'DAN_ID_KENH_LOG_VAO_DAY';
+const LOG_CHANNEL_ID = https://discord.gg/a7fbSVnzX;
 
 client.once('ready', () => {
   console.log(`Đã online dưới tên: ${client.user.tag}`);
