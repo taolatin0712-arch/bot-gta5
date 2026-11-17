@@ -76,4 +76,5 @@ client.on('messageCreate', async (message) => {
 });
 
 // Đăng nhập Bot bằng Token
+// Thay vì dùng process.env.DISCORD_TOKEN
 client.login(process.env.DISCORD_TOKEN);
