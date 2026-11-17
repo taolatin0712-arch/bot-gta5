@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const express = require('express');
 
-// Khởi tạo Discord Bot với các quyền cần thiết
+// Khởi tạo Discord Bot với các quyền đọc tin nhắn
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -14,10 +14,10 @@ const client = new Client({
 const app = express();
 app.use(express.json());
 
-// Biến lưu trữ kết quả tạm thời trên RAM của bot
+// Biến lưu trữ kết quả tạm thời trên RAM
 let latestResult = "Chưa có dữ liệu";
 
-// 1. API Endpoint để tool/game trên máy bạn gọi HTTP POST lên cập nhật kết quả
+// 1. API nhận kết quả từ tool trên máy tính đẩy lên
 app.post('/update', (req, res) => {
     const { result } = req.body;
     if (result) {
@@ -28,32 +28,32 @@ app.post('/update', (req, res) => {
     return res.status(400).json({ success: false, message: "Thiếu dữ liệu result!" });
 });
 
-// Trang chủ kiểm tra web server đang chạy
+// Trang chủ kiểm tra server sống
 app.get('/', (req, res) => {
     res.send('bot-gta5 is live!');
 });
 
-// Lắng nghe cổng từ Render cung cấp
+// Lắng nghe cổng trên Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Web server đã khởi động trên cổng ${PORT}`);
 });
 
-// 2. Sự kiện khi Bot Discord sẵn sàng
+// 2. Khi Bot online thành công
 client.once('ready', () => {
     console.log(`Đã online dưới tên: ${client.user.tag}`);
 });
 
-// 3. Xử lý lệnh chat của người dùng
+// 3. Xử lý lệnh chat từ Discord
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    // Lệnh !check
+    // Lệnh !check để hiện khung Embed chuẩn Kéo/Búa/Bao
     if (message.content.trim() === '!check') {
         const embed = new EmbedBuilder()
             .setTitle('OTT BOT DREW')
             .setDescription(`**Đối Phương Đã Khóa: ${latestResult}**`)
-            .setColor(0x2B2D31) // Màu tối đồng bộ giao diện Discord
+            .setColor(0x2B2D31) // Màu nền tối đồng bộ Discord
             .setFooter({ text: 'bot by drew.2023' });
 
         try {
@@ -63,7 +63,7 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    // Lệnh !help
+    // Lệnh !help hướng dẫn
     if (message.content.trim() === '!help') {
         const embed = new EmbedBuilder()
             .setTitle('Hướng Dẫn Sử Dụng')
@@ -75,5 +75,5 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// Đăng nhập bot (Render sẽ lấy Token từ biến môi trường hoặc bạn điền trực tiếp vào đây)
+// Đăng nhập Bot bằng Token
 client.login(process.env.DISCORD_TOKEN);
