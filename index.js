@@ -1,72 +1,79 @@
-const express = require('express');
-const app = express();
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const express = require('express');
 
-// Web server giữ bot luôn online trên Koyeb
-app.get('/', (req, res) => res.send('Bot GTA5VN đang hoạt động!'));
-app.listen(process.env.PORT || 8000, () => {
-  console.log('Web server đã khởi động!');
-});
-
+// Khởi tạo Discord Bot với các quyền cần thiết
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
-let lichSuKetQua = [];
-const PREFIX = '!';
-// (Tùy chọn) Dán ID kênh Discord bắn log kết quả game vào trong dấu nháy đơn bên dưới
-const LOG_CHANNEL_ID = 'https://discord.gg/a7fbSVnzX';
+// Khởi tạo Express Server để nhận dữ liệu từ tool/game gửi lên Render
+const app = express();
+app.use(express.json());
 
+// Biến lưu trữ kết quả tạm thời trên RAM của bot
+let latestResult = "Chưa có dữ liệu";
+
+// 1. API Endpoint để tool/game trên máy bạn gọi HTTP POST lên cập nhật kết quả
+app.post('/update', (req, res) => {
+    const { result } = req.body;
+    if (result) {
+        latestResult = result;
+        console.log(`Đã cập nhật kết quả mới: ${latestResult}`);
+        return res.status(200).json({ success: true, message: "Cập nhật thành công!" });
+    }
+    return res.status(400).json({ success: false, message: "Thiếu dữ liệu result!" });
+});
+
+// Trang chủ kiểm tra web server đang chạy
+app.get('/', (req, res) => {
+    res.send('bot-gta5 is live!');
+});
+
+// Lắng nghe cổng từ Render cung cấp
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Web server đã khởi động trên cổng ${PORT}`);
+});
+
+// 2. Sự kiện khi Bot Discord sẵn sàng
 client.once('ready', () => {
-  console.log(`Đã online dưới tên: ${client.user.tag}`);
+    console.log(`Đã online dưới tên: ${client.user.tag}`);
 });
 
+// 3. Xử lý lệnh chat của người dùng
 client.on('messageCreate', async (message) => {
-  // Tự động đọc & lưu tin nhắn từ kênh Log
-  if (message.channel.id === LOG_CHANNEL_ID && message.author.id !== client.user.id) {
-    const noiDung = message.content || (message.embeds[0] ? message.embeds[0].description : '');
-    if (noiDung) {
-      lichSuKetQua.unshift({
-        thoiGian: new Date().toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
-        chiTiet: noiDung
-      });
-      if (lichSuKetQua.length > 100) lichSuKetQua.pop();
-    }
-  }
+    if (message.author.bot) return;
 
-  if (message.author.bot || !message.content.startsWith(PREFIX)) return;
+    // Lệnh !check
+    if (message.content.trim() === '!check') {
+        const embed = new EmbedBuilder()
+            .setTitle('OTT BOT DREW')
+            .setDescription(`**Đối Phương Đã Khóa: ${latestResult}**`)
+            .setColor(0x2B2D31) // Màu tối đồng bộ giao diện Discord
+            .setFooter({ text: 'bot by drew.2023' });
 
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-  const command = args.shift().toLowerCase();
-
-  // Lệnh: !check hoặc !check <tên/từ khóa>
-  if (command === 'check') {
-    const keyword = args.join(' ').toLowerCase();
-
-    const ketQuaTimThay = keyword
-      ? lichSuKetQua.filter(item => item.chiTiet.toLowerCase().includes(keyword)).slice(0, 5)
-      : lichSuKetQua.slice(0, 5);
-
-    if (ketQuaTimThay.length === 0) {
-      return message.reply(`Chưa có dữ liệu kết quả nào${keyword ? ` cho **${keyword}**` : ''}.`);
+        try {
+            await message.channel.send({ embeds: [embed] });
+        } catch (error) {
+            console.error("Lỗi gửi tin nhắn embed:", error);
+        }
     }
 
-    const danhSachText = ketQuaTimThay
-      .map((item, index) => `**${index + 1}.** [${item.thoiGian}] ${item.chiTiet}`)
-      .join('\n');
+    // Lệnh !help
+    if (message.content.trim() === '!help') {
+        const embed = new EmbedBuilder()
+            .setTitle('Hướng Dẫn Sử Dụng')
+            .setDescription('Gõ `!check` để xem kết quả đối phương đã khóa.')
+            .setColor(0x2B2D31)
+            .setFooter({ text: 'bot by drew.2023' });
 
-    const embed = new EmbedBuilder()
-      .setColor(0x00FF99)
-      .setTitle(`📊 KẾT QUẢ GTA5VN ${keyword ? `- ${keyword.toUpperCase()}` : '(GẦN NHẤT)'}`)
-      .setDescription(danhSachText)
-      .setFooter({ text: `Tổng dữ liệu đang lưu: ${lichSuKetQua.length} trận` });
-
-    message.channel.send({ embeds: [embed] });
-  }
+        await message.channel.send({ embeds: [embed] });
+    }
 });
 
-client.login(process.env.TOKEN);
+// Đăng nhập bot (Render sẽ lấy Token từ biến môi trường hoặc bạn điền trực tiếp vào đây)
+client.login(process.env.DISCORD_TOKEN);
